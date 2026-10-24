@@ -37,7 +37,11 @@ PROXY = os.environ.get("YTDLP_PROXY", "")
 COOKIE_FILE = None
 if os.environ.get("YTDLP_COOKIES"):
     COOKIE_FILE = Path(tempfile.gettempdir()) / "yt_cookies.txt"
-    COOKIE_FILE.write_text(os.environ["YTDLP_COOKIES"].replace("\\n", "\n"))
+    cookies = os.environ["YTDLP_COOKIES"].replace("\\n", "\n").replace("\r", "").strip().strip("'\"").strip()
+    # yt-dlp rejects the file unless the first line is the Netscape header
+    if not re.match(r"#( Netscape)? HTTP Cookie File", cookies):
+        cookies = "# Netscape HTTP Cookie File\n" + cookies
+    COOKIE_FILE.write_text(cookies + "\n")
 
 VIDEO_ID = re.compile(r"^[A-Za-z0-9_-]{11}$")
 CHANNEL_ROOT = re.compile(
